@@ -10,8 +10,8 @@
     "docs": "npx typedoc --out docs --entryPoints src/index.ts --entryPointStrategy expand --readme none --name '@pbnj/bandersnatch' --includeVersion"
   },
   "dependencies": {
-    "@noble/curves": "catalog:",
-    "@noble/hashes": "catalog:"
+    "@noble/curves": "^2.0.1",
+    "@noble/hashes": "^2.0.1"
   },
   "devDependencies": {
     "typescript": "5.9.3",
