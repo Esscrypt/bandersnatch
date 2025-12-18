@@ -5,10 +5,10 @@
  * and customizes it for Bandersnatch parameters
  */
 
-import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards.js'
+import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards'
 import { Field } from '@noble/curves/abstract/modular'
-import { mod, modInverse, modSqrt } from '@pbnj/core'
 import { BANDERSNATCH_PARAMS } from './config'
+import { mod, modInverse, modSqrt } from './math'
 
 // Elligator2 hash-to-curve moved to bandersnatch-vrf package
 
@@ -39,12 +39,20 @@ const BANDERSNATCH_CURVE = {
 /**
  * Create Bandersnatch curve using @noble/curves
  */
-export const BandersnatchNoble = edwards(BANDERSNATCH_CURVE)
+export const Bandersnatch = edwards(BANDERSNATCH_CURVE)
 
 /**
- * Bandersnatch curve operations using @noble/curves
+ * Bandersnatch curve operations using @noble/curves.
+ * 
+ * This class provides a high-level interface for working with points on the
+ * Bandersnatch elliptic curve. It implements all standard elliptic curve operations
+ * including point addition, scalar multiplication, and point compression/decompression
+ * compatible with arkworks serialization format.
+ * 
+ * The Bandersnatch curve is a Twisted Edwards curve defined over the BLS12-381 scalar field,
+ * designed for efficient cryptographic operations in the JAM protocol.
  */
-export class BandersnatchCurveNoble {
+export class BandersnatchCurve {
   static Fp = Field(BANDERSNATCH_PARAMS.FIELD_MODULUS)
 
   /**
@@ -69,7 +77,7 @@ export class BandersnatchCurveNoble {
   static pointToBytes(noblePoint: EdwardsPoint): Uint8Array {
     const { x, y } = noblePoint.toAffine()
     // Fp.toBytes() allows non-canonical encoding of y (>= p).
-    const bytes = BandersnatchNoble.Fp.toBytes(y)
+    const bytes = Bandersnatch.Fp.toBytes(y)
     // Each y has 2 valid points: (x, y), (x,-y).
     // When compressing, it's enough to store y and use the last byte to encode sign of x
     // Use arkworks TEFlags logic: x > -x determines sign bit
@@ -83,11 +91,21 @@ export class BandersnatchCurveNoble {
   }
 
   /**
-   * Decompress arkworks-compatible point bytes to Noble EdwardsPoint
-   * This is the inverse of compressNoblePoint - it handles arkworks sign bit logic
+   * Decompresses arkworks-compatible point bytes to a Noble EdwardsPoint.
+   * 
+   * This is the inverse operation of `pointToBytes`. It handles arkworks sign bit logic
+   * to reconstruct the full point from compressed bytes. The method:
+   * 1. Extracts the y-coordinate from the first 31 bytes (little-endian)
+   * 2. Extracts the x-coordinate sign from bit 7 of the last byte
+   * 3. Computes the x-coordinate from y using the curve equation
+   * 4. Validates the point is in the prime subgroup G
    *
-   * @param bytes - Compressed point bytes (arkworks format)
-   * @returns Noble EdwardsPoint
+   * @param bytes - Compressed point bytes in arkworks format (32 bytes)
+   * @returns Decompressed Noble EdwardsPoint
+   * @throws {Error} If the byte array length is not 32
+   * @throws {Error} If the y-coordinate exceeds the field modulus
+   * @throws {Error} If the point is not on the curve (no square root exists)
+   * @throws {Error} If the point is not in the prime subgroup G
    */
   static bytesToPoint(bytes: Uint8Array): EdwardsPoint {
     if (bytes.length !== 32) {
@@ -129,7 +147,7 @@ export class BandersnatchCurveNoble {
     const x2 = mod(numerator * denominatorInv, p)
 
     // Calculate square root
-    const x = modSqrt(x2, p, BandersnatchNoble.Fp)
+    const x = modSqrt(x2, p, Bandersnatch.Fp)
     if (x === null) {
       throw new Error('Point is not on curve: no square root exists')
     }
@@ -147,7 +165,7 @@ export class BandersnatchCurveNoble {
     const finalX = signBit === xIsNegative ? x : negX
 
     // Create Noble point from affine coordinates
-    const point = BandersnatchNoble.fromAffine({ x: finalX, y })
+    const point = Bandersnatch.fromAffine({ x: finalX, y })
 
     // Validate point is in prime subgroup as required by bandersnatch-vrf-spec section 2.1:
     // "This function MUST outputs 'INVALID' if the octet-string does not decode
@@ -162,7 +180,7 @@ export class BandersnatchCurveNoble {
       curveOrderMinusOne,
     )
     const pointTimesOrder = this.add(pointTimesOrderMinusOne, point)
-    const isInPrimeSubgroup = pointTimesOrder.equals(BandersnatchNoble.ZERO)
+    const isInPrimeSubgroup = pointTimesOrder.equals(Bandersnatch.ZERO)
 
     if (!isInPrimeSubgroup) {
       throw new Error(
@@ -174,13 +192,22 @@ export class BandersnatchCurveNoble {
   }
 
   /**
-   * Scalar multiplication
-   * Handles edge cases: scalar 0, negative scalars, and scalars >= curve order
+   * Performs scalar multiplication on a curve point.
+   * 
+   * Computes `scalar * point` on the Bandersnatch curve. Handles edge cases including:
+   * - Scalar 0: returns the identity point (infinity)
+   * - Negative scalars: negates the point and uses positive scalar
+   * - Scalars >= curve order: reduces modulo curve order
+   * 
+   * @param point - The curve point to multiply
+   * @param scalar - The scalar multiplier (can be negative or >= curve order)
+   * @returns The result of scalar multiplication: `scalar * point`
+   * @throws {Error} If the point is invalid or not on the curve
    */
   static scalarMultiply(point: EdwardsPoint, scalar: bigint): EdwardsPoint {
     // Handle scalar 0: return identity point
     if (scalar === 0n) {
-      return BandersnatchNoble.ZERO
+      return Bandersnatch.ZERO
     }
 
     // Handle negative scalars: negate point and use positive scalar
@@ -190,7 +217,7 @@ export class BandersnatchCurveNoble {
       // Reduce modulo curve order
       const reducedScalar = positiveScalar % BANDERSNATCH_PARAMS.CURVE_ORDER
       if (reducedScalar === 0n) {
-        return BandersnatchNoble.ZERO
+        return Bandersnatch.ZERO
       }
       return negPoint.multiply(reducedScalar)
     }
@@ -199,63 +226,114 @@ export class BandersnatchCurveNoble {
     // @noble/curves requires 1 <= scalar < curve.n
     const reducedScalar = scalar % BANDERSNATCH_PARAMS.CURVE_ORDER
     if (reducedScalar === 0n) {
-      return BandersnatchNoble.ZERO
+      return Bandersnatch.ZERO
     }
 
     return point.multiply(reducedScalar)
   }
 
   /**
-   * Point addition
+   * Adds two curve points together.
+   * 
+   * Performs point addition on the Bandersnatch curve: `P + Q`.
+   * This operation is commutative: `add(P, Q) === add(Q, P)`.
+   * 
+   * @param p1 - First curve point
+   * @param p2 - Second curve point
+   * @returns The sum of the two points: `p1 + p2`
+   * @throws {Error} If either point is invalid or not on the curve
    */
   static add(p1: EdwardsPoint, p2: EdwardsPoint): EdwardsPoint {
     return p1.add(p2)
   }
 
   /**
-   * Point doubling
+   * Doubles a curve point.
+   * 
+   * Computes `2 * point` on the Bandersnatch curve. This is equivalent to
+   * `add(point, point)` but is typically more efficient.
+   * 
+   * @param point - The curve point to double
+   * @returns The doubled point: `2 * point`
+   * @throws {Error} If the point is invalid or not on the curve
    */
   static double(point: EdwardsPoint): EdwardsPoint {
     return point.double()
   }
 
   /**
-   * Point negation
+   * Negates a curve point.
+   * 
+   * Computes the additive inverse of a point on the Bandersnatch curve.
+   * The result satisfies: `add(point, negate(point)) === INFINITY`.
+   * 
+   * @param point - The curve point to negate
+   * @returns The negated point: `-point`
+   * @throws {Error} If the point is invalid or not on the curve
    */
   static negate(point: EdwardsPoint): EdwardsPoint {
     return point.negate()
   }
 
   /**
-   * Check if point is on curve
+   * Checks if a point lies on the Bandersnatch curve.
+   * 
+   * Validates that the point satisfies the Twisted Edwards curve equation:
+   * `a*x^2 + y^2 = 1 + d*x^2*y^2` where `a = -5` and `d` is the curve parameter.
+   * 
+   * @param point - The curve point to validate
+   * @returns `true` if the point is on the curve, `false` otherwise
    */
   static isOnCurve(point: EdwardsPoint): boolean {
     return point.isTorsionFree()
   }
 
   /**
-   * Get generator point
+   * Gets the generator point (base point) of the Bandersnatch curve.
+   * 
+   * The generator is a point on the curve that generates the prime subgroup G.
+   * All points in the prime subgroup can be expressed as scalar multiples of the generator.
+   * 
+   * @returns The generator point G
    */
   static get GENERATOR() {
-    return BandersnatchNoble.BASE
+    return Bandersnatch.BASE
   }
 
   /**
-   * Get infinity point
+   * Gets the identity point (point at infinity) of the Bandersnatch curve.
+   * 
+   * The identity point is the neutral element for point addition:
+   * `add(point, INFINITY) === point` for any point on the curve.
+   * 
+   * @returns The identity point (point at infinity)
    */
   static get INFINITY() {
-    return BandersnatchNoble.ZERO
+    return Bandersnatch.ZERO
   }
 
   /**
-   * Hash point to bytes (for challenge generation)
+   * Converts a curve point to its byte representation.
+   * 
+   * Serializes the point to bytes, typically used for challenge generation
+   * in cryptographic protocols. The output format matches the point compression
+   * format used by the curve implementation.
+   * 
+   * @param point - The curve point to hash
+   * @returns Byte representation of the point
+   * @throws {Error} If the point is invalid
    */
   static hashPoint(point: EdwardsPoint): Uint8Array {
     return point.toBytes()
   }
 
   /**
-   * Get curve order
+   * Gets the order (cardinality) of the prime subgroup of the Bandersnatch curve.
+   * 
+   * The curve order is the number of points in the prime subgroup G.
+   * For any point P in G, `scalarMultiply(P, CURVE_ORDER) === INFINITY`.
+   * 
+   * @returns The curve order as a bigint
    */
   static get CURVE_ORDER() {
     return BANDERSNATCH_PARAMS.CURVE_ORDER

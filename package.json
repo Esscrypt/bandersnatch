@@ -3,23 +3,19 @@
   "version": "0.1.0",
   "description": "Bandersnatch elliptic curve implementation",
   "type": "module",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "vitest",
-    "dev": "tsc --watch"
+    "test": "bun test",
+    "dev": "tsc --watch",
+    "docs": "npx typedoc --out docs --entryPoints src/index.ts --entryPointStrategy expand --readme none --name '@pbnj/bandersnatch' --includeVersion"
   },
   "dependencies": {
     "@noble/curves": "catalog:",
-    "@noble/hashes": "catalog:",
-    "@pbnj/core": "workspace:*",
-    "@pbnj/types": "workspace:*"
+    "@noble/hashes": "catalog:"
   },
   "devDependencies": {
-    "@pbnj/typescript-config": "workspace:*",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0"
+    "typescript": "5.9.3",
+    "typedoc": "0.28.15"
   },
   "exports": {
     ".": "./src/index.ts"

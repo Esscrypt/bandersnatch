@@ -6,15 +6,15 @@
  */
 
 // Export types
-export type { CurvePoint } from '@pbnj/types'
+export type { CurvePoint } from './types'
 // Export curve parameters
 export { BANDERSNATCH_PARAMS } from './config'
 // Elligator2 hash-to-curve is now available in bandersnatch-vrf package
 // Export curve implementations
 // Temporary alias for legacy compatibility
 export {
-  BandersnatchCurveNoble,
-  BandersnatchCurveNoble as BandersnatchCurve,
-  BandersnatchNoble,
-} from './curve-noble'
+  BandersnatchCurve,
+  Bandersnatch,
+} from './curve'
 // VRF functionality moved to bandersnatch-vrf package
+export * from './math'
