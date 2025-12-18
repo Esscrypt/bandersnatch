@@ -6,7 +6,7 @@ import {
   FpIsSquare,
   FpSqrt,
   type IField,
-} from '@noble/curves/abstract/modular'
+} from '@noble/curves/abstract/modular.js'
 
 /**
  * Computes the non-negative modular reduction.

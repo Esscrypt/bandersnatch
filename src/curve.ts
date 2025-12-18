@@ -5,8 +5,8 @@
  * and customizes it for Bandersnatch parameters
  */
 
-import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards'
-import { Field } from '@noble/curves/abstract/modular'
+import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards.js'
+import { Field } from '@noble/curves/abstract/modular.js'
 import { BANDERSNATCH_PARAMS } from './config'
 import { mod, modInverse, modSqrt } from './math'
 
