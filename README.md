@@ -1,4 +1,4 @@
-# `@pbnj/bandersnatch`
+# `@pbnjam/bandersnatch`
 
 Bandersnatch elliptic curve primitives built on top of `@noble/curves`.
 
@@ -8,7 +8,7 @@ This package provides:
 - A **high-level helper class** (`BandersnatchCurve`) for point operations and arkworks-compatible serialization.
 - Public **curve parameters** (`BANDERSNATCH_PARAMS`).
 
-> Note: VRF functionality and Elligator2 hash-to-curve are implemented in `@pbnj/bandersnatch-vrf`.
+> Note: VRF functionality and Elligator2 hash-to-curve are implemented in `@pbnjam/bandersnatch-vrf`.
 
 ## Installation
 
@@ -18,15 +18,15 @@ This repository uses Bun workspaces. From the monorepo root, install deps once:
 bun install
 ```
 
-Within another workspace package, add a dependency on `@pbnj/bandersnatch` via the workspace tooling you use (Bun/npm/pnpm/yarn).
+Within another workspace package, add a dependency on `@pbnjam/bandersnatch` via the workspace tooling you use (Bun/npm/pnpm/yarn).
 
 ## Usage
 
 ### Import the public API
 
 ```ts
-import { Bandersnatch, BandersnatchCurve, BANDERSNATCH_PARAMS } from '@pbnj/bandersnatch'
-import type { CurvePoint } from '@pbnj/bandersnatch'
+import { Bandersnatch, BandersnatchCurve, BANDERSNATCH_PARAMS } from '@pbnjam/bandersnatch'
+import type { CurvePoint } from '@pbnjam/bandersnatch'
 ```
 
 ### Work with points (high-level helpers)
@@ -38,7 +38,7 @@ import type { CurvePoint } from '@pbnj/bandersnatch'
 - `add(P, Q)`, `negate(P)`, `scalarMultiply(P, k)`
 
 ```ts
-import { BandersnatchCurve } from '@pbnj/bandersnatch'
+import { BandersnatchCurve } from '@pbnjam/bandersnatch'
 
 const P = BandersnatchCurve.GENERATOR
 const Q = BandersnatchCurve.scalarMultiply(P, 2n)
@@ -56,7 +56,7 @@ void y
 The helper methods are intended to be compatible with arkworks’ Twisted Edwards compression format.
 
 ```ts
-import { Bandersnatch, BandersnatchCurve } from '@pbnj/bandersnatch'
+import { Bandersnatch, BandersnatchCurve } from '@pbnjam/bandersnatch'
 
 // Noble point → compressed bytes (arkworks-compatible)
 const noblePoint = Bandersnatch.BASE
@@ -79,7 +79,7 @@ From `src/index.ts`:
 
 ### `CurvePoint`
 
-`CurvePoint` is a simple structural representation used by some algorithms (notably `@pbnj/bandersnatch-vrf`’s Elligator2 hash-to-curve helpers):
+`CurvePoint` is a simple structural representation used by some algorithms (notably `@pbnjam/bandersnatch-vrf`’s Elligator2 hash-to-curve helpers):
 
 - `x: bigint`
 - `y: bigint`

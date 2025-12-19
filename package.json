@@ -1,13 +1,22 @@
 {
-  "name": "@pbnj/bandersnatch",
-  "version": "0.1.0",
+  "name": "@pbnjam/bandersnatch",
+  "version": "0.7.2-rc0",
   "description": "Bandersnatch elliptic curve implementation",
+  "license": "Apache-2.0",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Esscrypt/bandersnatch.git"
+  },
+  "homepage": "https://github.com/Esscrypt/bandersnatch",
+  "bugs": {
+    "url": "https://github.com/Esscrypt/bandersnatch/issues"
+  },
   "scripts": {
     "build": "tsc",
     "test": "bun test",
     "dev": "tsc --watch",
-    "docs": "npx typedoc --out docs --entryPoints src/index.ts --entryPointStrategy expand --readme none --name '@pbnj/bandersnatch' --includeVersion --tsconfig tsconfig.typedoc.json"
+    "docs": "npx typedoc --out docs --entryPoints src/index.ts --entryPointStrategy expand --readme none --name '@pbnjam/bandersnatch' --includeVersion --tsconfig tsconfig.typedoc.json"
   },
   "dependencies": {
     "@noble/curves": "^2.0.1",
@@ -22,5 +31,8 @@
   },
   "exports": {
     ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
