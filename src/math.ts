@@ -10,10 +10,10 @@ import {
 
 /**
  * Computes the non-negative modular reduction.
- * 
+ *
  * Returns `a mod m` where the result is always non-negative (0 <= result < m).
  * This handles negative inputs correctly by adding the modulus to negative results.
- * 
+ *
  * @param a - The value to reduce
  * @param m - The modulus
  * @returns Non-negative result of `a mod m`
@@ -25,10 +25,10 @@ export function mod(a: bigint, m: bigint): bigint {
 
 /**
  * Computes the modular inverse using the extended Euclidean algorithm.
- * 
+ *
  * Finds the value `x` such that `(a * x) mod m = 1`. The modular inverse exists
  * if and only if `gcd(a, m) = 1`.
- * 
+ *
  * @param a - The value to find the inverse of
  * @param m - The modulus
  * @returns The modular inverse of `a` modulo `m`
@@ -53,10 +53,10 @@ export function modInverse(a: bigint, m: bigint): bigint {
 
 /**
  * Computes the modular square root using the noble package FpSqrt.
- * 
+ *
  * Finds a value `x` such that `x^2 mod p = value`. The square root exists
  * if and only if `value` is a quadratic residue modulo `p`.
- * 
+ *
  * @param value - The value to find the square root of
  * @param p - The prime modulus
  * @param field - The field implementation from @noble/curves
@@ -81,11 +81,10 @@ export function modSqrt(
 }
 
 export function numberToBytesLittleEndian(value: bigint): Uint8Array {
-    const bytes = new Uint8Array(32)
-    const hex = value.toString(16).padStart(64, '0')
-    for (let i = 0; i < 32; i++) {
-      bytes[i] = Number.parseInt(hex.slice(62 - i * 2, 64 - i * 2), 16)
-    }
-    return bytes
+  const bytes = new Uint8Array(32)
+  const hex = value.toString(16).padStart(64, '0')
+  for (let i = 0; i < 32; i++) {
+    bytes[i] = Number.parseInt(hex.slice(62 - i * 2, 64 - i * 2), 16)
   }
-  
+  return bytes
+}

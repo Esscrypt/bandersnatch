@@ -43,12 +43,12 @@ export const Bandersnatch = edwards(BANDERSNATCH_CURVE)
 
 /**
  * Bandersnatch curve operations using @noble/curves.
- * 
+ *
  * This class provides a high-level interface for working with points on the
  * Bandersnatch elliptic curve. It implements all standard elliptic curve operations
  * including point addition, scalar multiplication, and point compression/decompression
  * compatible with arkworks serialization format.
- * 
+ *
  * The Bandersnatch curve is a Twisted Edwards curve defined over the BLS12-381 scalar field,
  * designed for efficient cryptographic operations in the JAM protocol.
  */
@@ -92,7 +92,7 @@ export class BandersnatchCurve {
 
   /**
    * Decompresses arkworks-compatible point bytes to a Noble EdwardsPoint.
-   * 
+   *
    * This is the inverse operation of `pointToBytes`. It handles arkworks sign bit logic
    * to reconstruct the full point from compressed bytes. The method:
    * 1. Extracts the y-coordinate from the first 31 bytes (little-endian)
@@ -193,12 +193,12 @@ export class BandersnatchCurve {
 
   /**
    * Performs scalar multiplication on a curve point.
-   * 
+   *
    * Computes `scalar * point` on the Bandersnatch curve. Handles edge cases including:
    * - Scalar 0: returns the identity point (infinity)
    * - Negative scalars: negates the point and uses positive scalar
    * - Scalars >= curve order: reduces modulo curve order
-   * 
+   *
    * @param point - The curve point to multiply
    * @param scalar - The scalar multiplier (can be negative or >= curve order)
    * @returns The result of scalar multiplication: `scalar * point`
@@ -234,10 +234,10 @@ export class BandersnatchCurve {
 
   /**
    * Adds two curve points together.
-   * 
+   *
    * Performs point addition on the Bandersnatch curve: `P + Q`.
    * This operation is commutative: `add(P, Q) === add(Q, P)`.
-   * 
+   *
    * @param p1 - First curve point
    * @param p2 - Second curve point
    * @returns The sum of the two points: `p1 + p2`
@@ -249,10 +249,10 @@ export class BandersnatchCurve {
 
   /**
    * Doubles a curve point.
-   * 
+   *
    * Computes `2 * point` on the Bandersnatch curve. This is equivalent to
    * `add(point, point)` but is typically more efficient.
-   * 
+   *
    * @param point - The curve point to double
    * @returns The doubled point: `2 * point`
    * @throws {Error} If the point is invalid or not on the curve
@@ -263,10 +263,10 @@ export class BandersnatchCurve {
 
   /**
    * Negates a curve point.
-   * 
+   *
    * Computes the additive inverse of a point on the Bandersnatch curve.
    * The result satisfies: `add(point, negate(point)) === INFINITY`.
-   * 
+   *
    * @param point - The curve point to negate
    * @returns The negated point: `-point`
    * @throws {Error} If the point is invalid or not on the curve
@@ -277,10 +277,10 @@ export class BandersnatchCurve {
 
   /**
    * Checks if a point lies on the Bandersnatch curve.
-   * 
+   *
    * Validates that the point satisfies the Twisted Edwards curve equation:
    * `a*x^2 + y^2 = 1 + d*x^2*y^2` where `a = -5` and `d` is the curve parameter.
-   * 
+   *
    * @param point - The curve point to validate
    * @returns `true` if the point is on the curve, `false` otherwise
    */
@@ -290,10 +290,10 @@ export class BandersnatchCurve {
 
   /**
    * Gets the generator point (base point) of the Bandersnatch curve.
-   * 
+   *
    * The generator is a point on the curve that generates the prime subgroup G.
    * All points in the prime subgroup can be expressed as scalar multiples of the generator.
-   * 
+   *
    * @returns The generator point G
    */
   static get GENERATOR() {
@@ -302,10 +302,10 @@ export class BandersnatchCurve {
 
   /**
    * Gets the identity point (point at infinity) of the Bandersnatch curve.
-   * 
+   *
    * The identity point is the neutral element for point addition:
    * `add(point, INFINITY) === point` for any point on the curve.
-   * 
+   *
    * @returns The identity point (point at infinity)
    */
   static get INFINITY() {
@@ -314,11 +314,11 @@ export class BandersnatchCurve {
 
   /**
    * Converts a curve point to its byte representation.
-   * 
+   *
    * Serializes the point to bytes, typically used for challenge generation
    * in cryptographic protocols. The output format matches the point compression
    * format used by the curve implementation.
-   * 
+   *
    * @param point - The curve point to hash
    * @returns Byte representation of the point
    * @throws {Error} If the point is invalid
@@ -329,10 +329,10 @@ export class BandersnatchCurve {
 
   /**
    * Gets the order (cardinality) of the prime subgroup of the Bandersnatch curve.
-   * 
+   *
    * The curve order is the number of points in the prime subgroup G.
    * For any point P in G, `scalarMultiply(P, CURVE_ORDER) === INFINITY`.
-   * 
+   *
    * @returns The curve order as a bigint
    */
   static get CURVE_ORDER() {
