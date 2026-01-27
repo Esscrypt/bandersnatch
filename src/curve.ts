@@ -98,16 +98,22 @@ export class BandersnatchCurve {
    * 1. Extracts the y-coordinate from the first 31 bytes (little-endian)
    * 2. Extracts the x-coordinate sign from bit 7 of the last byte
    * 3. Computes the x-coordinate from y using the curve equation
-   * 4. Validates the point is in the prime subgroup G
+   * 4. Optionally validates the point is in the prime subgroup G
    *
    * @param bytes - Compressed point bytes in arkworks format (32 bytes)
+   * @param validateSubgroup - Whether to validate point is in prime subgroup (default: true)
+   *                           Set to false for faster validation when only checking if bytes
+   *                           represent a valid curve point (e.g., for padding point replacement)
    * @returns Decompressed Noble EdwardsPoint
    * @throws {Error} If the byte array length is not 32
    * @throws {Error} If the y-coordinate exceeds the field modulus
    * @throws {Error} If the point is not on the curve (no square root exists)
-   * @throws {Error} If the point is not in the prime subgroup G
+   * @throws {Error} If validatePointOnCurve is true and point is not on the curve
    */
-  static bytesToPoint(bytes: Uint8Array): EdwardsPoint {
+  static bytesToPoint(
+    bytes: Uint8Array,
+    validatePointOnCurve = true,
+  ): EdwardsPoint {
     if (bytes.length !== 32) {
       throw new Error(
         `Invalid compressed point length: ${bytes.length}, expected 32`,
@@ -167,25 +173,27 @@ export class BandersnatchCurve {
     // Create Noble point from affine coordinates
     const point = Bandersnatch.fromAffine({ x: finalX, y })
 
-    // Validate point is in prime subgroup as required by bandersnatch-vrf-spec section 2.1:
+    // Optionally validate point is in prime subgroup as required by bandersnatch-vrf-spec section 2.1:
     // "This function MUST outputs 'INVALID' if the octet-string does not decode
     // to a point on the prime subgroup G"
     // A point is in the prime subgroup if and only if multiplying by the curve order
     // gives the identity point (infinity)
     // Since @noble/curves requires 1 <= scalar < curve.n, we use CURVE_ORDER - 1
     // and then add the point once more: point * CURVE_ORDER = point * (CURVE_ORDER - 1) + point
-    const curveOrderMinusOne = BANDERSNATCH_PARAMS.CURVE_ORDER - 1n
-    const pointTimesOrderMinusOne = this.scalarMultiply(
-      point,
-      curveOrderMinusOne,
-    )
-    const pointTimesOrder = this.add(pointTimesOrderMinusOne, point)
-    const isInPrimeSubgroup = pointTimesOrder.equals(Bandersnatch.ZERO)
-
-    if (!isInPrimeSubgroup) {
-      throw new Error(
-        'Point is not in prime subgroup: decoded point is not in G',
+    if (validatePointOnCurve) {
+      const curveOrderMinusOne = BANDERSNATCH_PARAMS.CURVE_ORDER - 1n
+      const pointTimesOrderMinusOne = this.scalarMultiply(
+        point,
+        curveOrderMinusOne,
       )
+      const pointTimesOrder = this.add(pointTimesOrderMinusOne, point)
+      const isInPrimeSubgroup = pointTimesOrder.equals(Bandersnatch.ZERO)
+
+      if (!isInPrimeSubgroup) {
+        throw new Error(
+          'Point is not in prime subgroup: decoded point is not in G',
+        )
+      }
     }
 
     return point
