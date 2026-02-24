@@ -8,6 +8,7 @@
 import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards.js'
 import { Field } from '@noble/curves/abstract/modular.js'
 import { BANDERSNATCH_PARAMS } from './config'
+import { glvMultiply } from './glv'
 import { mod, modInverse, modSqrt } from './math'
 
 // Elligator2 hash-to-curve moved to bandersnatch-vrf package
@@ -207,37 +208,38 @@ export class BandersnatchCurve {
    * - Negative scalars: negates the point and uses positive scalar
    * - Scalars >= curve order: reduces modulo curve order
    *
+   * By default uses GLV endomorphism (Shamir's trick with ~127-bit loop) for
+   * ~40% faster multiplication. Pass `useGlv: false` to use the naive
+   * double-and-add from @noble/curves instead.
+   *
    * @param point - The curve point to multiply
    * @param scalar - The scalar multiplier (can be negative or >= curve order)
+   * @param useGlv - Whether to use the GLV endomorphism optimization (default: true)
    * @returns The result of scalar multiplication: `scalar * point`
    * @throws {Error} If the point is invalid or not on the curve
    */
-  static scalarMultiply(point: EdwardsPoint, scalar: bigint): EdwardsPoint {
-    // Handle scalar 0: return identity point
+  static scalarMultiply(
+    point: EdwardsPoint,
+    scalar: bigint,
+    useGlv = true,
+  ): EdwardsPoint {
+    if (useGlv) {
+      return glvMultiply(point, scalar)
+    }
+
     if (scalar === 0n) {
       return Bandersnatch.ZERO
     }
 
-    // Handle negative scalars: negate point and use positive scalar
     if (scalar < 0n) {
-      const negPoint = point.negate()
-      const positiveScalar = -scalar
-      // Reduce modulo curve order
-      const reducedScalar = positiveScalar % BANDERSNATCH_PARAMS.CURVE_ORDER
-      if (reducedScalar === 0n) {
-        return Bandersnatch.ZERO
-      }
-      return negPoint.multiply(reducedScalar)
+      const positiveScalar = (-scalar) % BANDERSNATCH_PARAMS.CURVE_ORDER
+      if (positiveScalar === 0n) return Bandersnatch.ZERO
+      return point.negate().multiply(positiveScalar)
     }
 
-    // Reduce scalar modulo curve order if it's >= curve order
-    // @noble/curves requires 1 <= scalar < curve.n
-    const reducedScalar = scalar % BANDERSNATCH_PARAMS.CURVE_ORDER
-    if (reducedScalar === 0n) {
-      return Bandersnatch.ZERO
-    }
-
-    return point.multiply(reducedScalar)
+    const reduced = scalar % BANDERSNATCH_PARAMS.CURVE_ORDER
+    if (reduced === 0n) return Bandersnatch.ZERO
+    return point.multiply(reduced)
   }
 
   /**
