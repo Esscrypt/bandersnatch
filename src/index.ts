@@ -6,15 +6,15 @@
  */
 
 // Export curve parameters
-export { BANDERSNATCH_PARAMS } from './config'
+export { BANDERSNATCH_PARAMS } from './config.ts'
 // Export curve implementations
 export {
   Bandersnatch,
   BandersnatchCurve,
-} from './curve'
+} from './curve.ts'
 // Export GLV endomorphism
-export { endomorphism, glvMultiply, scalarDecomposition } from './glv'
+export { endomorphism, glvMultiply, scalarDecomposition } from './glv.ts'
 // Export math utilities
-export * from './math'
+export * from './math.ts'
 // Export types
-export type { CurvePoint } from './types'
+export type { CurvePoint } from './types.ts'

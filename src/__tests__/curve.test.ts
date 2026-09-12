@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test'
-import { Bandersnatch, BandersnatchCurve } from '../curve'
-import { BANDERSNATCH_PARAMS } from '../config'
-import { endomorphism, glvMultiply, scalarDecomposition } from '../glv'
-import { mod } from '../math'
+import { Bandersnatch, BandersnatchCurve } from '../curve.ts'
+import { BANDERSNATCH_PARAMS } from '../config.ts'
+import { endomorphism, glvMultiply, scalarDecomposition } from '../glv.ts'
+import { mod } from '../math.ts'
 
 describe('BandersnatchCurve Operations', () => {
   test('Point addition: P + Q = Q + P (commutativity)', () => {

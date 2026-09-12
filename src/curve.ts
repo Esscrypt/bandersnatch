@@ -7,9 +7,9 @@
 
 import { type EdwardsPoint, edwards } from '@noble/curves/abstract/edwards.js'
 import { Field } from '@noble/curves/abstract/modular.js'
-import { BANDERSNATCH_PARAMS } from './config'
-import { glvMultiply } from './glv'
-import { mod, modInverse, modSqrt } from './math'
+import { BANDERSNATCH_PARAMS } from './config.ts'
+import { glvMultiply } from './glv.ts'
+import { mod, modInverse, modSqrt } from './math.ts'
 
 // Elligator2 hash-to-curve moved to bandersnatch-vrf package
 
@@ -232,7 +232,7 @@ export class BandersnatchCurve {
     }
 
     if (scalar < 0n) {
-      const positiveScalar = (-scalar) % BANDERSNATCH_PARAMS.CURVE_ORDER
+      const positiveScalar = -scalar % BANDERSNATCH_PARAMS.CURVE_ORDER
       if (positiveScalar === 0n) return Bandersnatch.ZERO
       return point.negate().multiply(positiveScalar)
     }

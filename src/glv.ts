@@ -14,9 +14,9 @@
  */
 
 import type { EdwardsPoint } from '@noble/curves/abstract/edwards.js'
-import { Bandersnatch } from './curve'
-import { BANDERSNATCH_PARAMS } from './config'
-import { mod, modInverse } from './math'
+import { BANDERSNATCH_PARAMS } from './config.ts'
+import { Bandersnatch } from './curve.ts'
+import { mod, modInverse } from './math.ts'
 
 const P = BANDERSNATCH_PARAMS.FIELD_MODULUS
 const R = BANDERSNATCH_PARAMS.CURVE_ORDER
@@ -32,7 +32,8 @@ const R = BANDERSNATCH_PARAMS.CURVE_ORDER
  * transferred to TE coordinates.
  */
 const AY4 = 0x1d46e71b2d28e06c42bc1f5a41f4a0156d070863689e8862eb12927f72f308c3n
-const AY2Z2 = 0x20b21e58881722d68c92fa09709ea65d716e869843e94c821df033483694a51an
+const AY2Z2 =
+  0x20b21e58881722d68c92fa09709ea65d716e869843e94c821df033483694a51an
 const AZ4 = 0x1373fe65dcb354e5209f902de5b37008d6c2721d8d6d5fb556e8b7e969c053c9n
 const BY2 = 0x33937d60e9a0dd55ed1f9030e7c8b6fa9c42e1e41d2f1361a0fed9630f711caen
 const BZ2 = 0x39a33e54438fe0155ae18e93205d4395acfe4be1127ca6458fc0270450b1b50dn
@@ -54,7 +55,7 @@ const M3 = 21482638764116277775478679919733259912n
 function floorDiv(a: bigint, b: bigint): bigint {
   const q = a / b
   const r = a % b
-  if (r !== 0n && (r < 0n) !== (b < 0n)) {
+  if (r !== 0n && r < 0n !== b < 0n) {
     return q - 1n
   }
   return q
@@ -97,10 +98,7 @@ export function endomorphism(point: EdwardsPoint): EdwardsPoint {
   const y2 = mod(y * y, P)
   const y4 = mod(y2 * y2, P)
 
-  const xNumerator = mod(
-    x * mod(AY4 * y4 + AY2Z2 * y2 + AZ4, P),
-    P,
-  )
+  const xNumerator = mod(x * mod(AY4 * y4 + AY2Z2 * y2 + AZ4, P), P)
 
   const denominator = mod(CY2 * y2 + CZ2, P)
   const denominatorInv = modInverse(denominator, P)
@@ -129,7 +127,7 @@ export function scalarDecomposition(
   const b1 = floorDiv(k * M2, R)
 
   const s0 = k - b0 * M1 - b1 * M3
-  const s1 = -(b0 * M2 + b1 * (-M1))
+  const s1 = -(b0 * M2 + b1 * -M1)
 
   return [s0 >= 0n, abs(s0), s1 >= 0n, abs(s1)]
 }
@@ -147,10 +145,7 @@ export function scalarDecomposition(
  * @param point - The curve point P (must be in the prime-order subgroup)
  * @param scalar - The scalar k (must be in range [1, r-1] after reduction)
  */
-export function glvMultiply(
-  point: EdwardsPoint,
-  scalar: bigint,
-): EdwardsPoint {
+export function glvMultiply(point: EdwardsPoint, scalar: bigint): EdwardsPoint {
   if (scalar === 0n) {
     return Bandersnatch.ZERO
   }
@@ -169,8 +164,8 @@ export function glvMultiply(
     return Bandersnatch.ZERO
   }
 
-  let b1 = sign1 ? point : point.negate()
-  let b2 = sign2 ? endomorphism(point) : endomorphism(point).negate()
+  const b1 = sign1 ? point : point.negate()
+  const b2 = sign2 ? endomorphism(point) : endomorphism(point).negate()
 
   if (absK1 === 0n) {
     return absK2 === 1n ? b2 : b2.multiply(absK2)
