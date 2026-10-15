@@ -117,7 +117,7 @@ const R2 = BandersnatchCurve.scalarMultiply(P, k, false)
 
 ### Performance Comparison
 
-Benchmarked on Apple M4 Max, macOS 15.5, Bun 1.3.9. Each measurement averages 5 rounds of 10 random 253-bit scalars.
+Benchmarked on Apple M4 Max, macOS 15.5, Bun 1.4.2. Each measurement averages 5 rounds of 10 random 253-bit scalars.
 
 | Scenario | GLV (Shamir) | noble wNAF | GLV vs naive |
 | --- | --- | --- | --- |

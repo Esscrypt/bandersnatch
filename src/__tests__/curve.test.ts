@@ -169,45 +169,34 @@ describe('BandersnatchCurve Operations', () => {
     
     const largeP = BandersnatchCurve.scalarMultiply(P, largeScalar)
     
-    // Verify the point is still on the curve
     expect(BandersnatchCurve.isOnCurve(largeP)).toBe(true)
     
-    // Verify it's not the identity
     expect(largeP.x).not.toBe(BandersnatchCurve.INFINITY.x)
     expect(largeP.y).not.toBe(BandersnatchCurve.INFINITY.y)
   })
 
   test('Modular arithmetic consistency', () => {
     const P = BandersnatchCurve.GENERATOR
-    // Use a large scalar to test modular arithmetic
-    // Reduce modulo curve order since @noble/curves requires 1 <= scalar < curve.n
     const largeScalar = BigInt('0x10000000000000000000000000000000000000000000000000000000000000000')
     const curveOrder = BandersnatchCurve.CURVE_ORDER
     const reducedScalar = largeScalar % curveOrder
-    // Ensure scalar is in valid range [1, curve.n) for @noble/curves
     const validScalar = reducedScalar === 0n ? 1n : reducedScalar
     
     const nP = BandersnatchCurve.scalarMultiply(P, validScalar)
     
-    // The result should be a valid point on the curve
     expect(BandersnatchCurve.isOnCurve(nP)).toBe(true)
   })
 
   test('Specific values from debug output', () => {
-    // Test with a valid point on the curve instead of hardcoded debug values
     const P = BandersnatchCurve.GENERATOR
     
-    // Test that P is on the curve
     expect(BandersnatchCurve.isOnCurve(P)).toBe(true)
     
-    // Test x*P computation
     const x = BigInt('0x101010101010101010101010101010101010101010101010101010101010101')
     const xP = BandersnatchCurve.scalarMultiply(P, x)
     
-    // Test that xP is on the curve
     expect(BandersnatchCurve.isOnCurve(xP)).toBe(true)
     
-    // Test round-trip serialization
     const xP_bytes = BandersnatchCurve.pointToBytes(xP)
     const xP_reconstructed = BandersnatchCurve.bytesToPoint(xP_bytes)
     
@@ -216,21 +205,17 @@ describe('BandersnatchCurve Operations', () => {
   })
 
   test('Challenge computation consistency', () => {
-    // Test with valid points on the curve
     const P = BandersnatchCurve.GENERATOR
     const Q = BandersnatchCurve.scalarMultiply(P, 2n)
     const R = BandersnatchCurve.scalarMultiply(P, 3n)
 
-    // Test that all points are on the curve
     expect(BandersnatchCurve.isOnCurve(P)).toBe(true)
     expect(BandersnatchCurve.isOnCurve(Q)).toBe(true)
     expect(BandersnatchCurve.isOnCurve(R)).toBe(true)
 
-    // Test valid mathematical relationships
     const a = 5n
     const b = 7n
 
-    // Test (a + b) * P = a * P + b * P (distributivity)
     const aP = BandersnatchCurve.scalarMultiply(P, a)
     const bP = BandersnatchCurve.scalarMultiply(P, b)
     const abP = BandersnatchCurve.scalarMultiply(P, a + b)
@@ -239,7 +224,6 @@ describe('BandersnatchCurve Operations', () => {
     expect(abP.x).toBe(aP_plus_bP.x)
     expect(abP.y).toBe(aP_plus_bP.y)
 
-    // Test (a * b) * P = a * (b * P) (associativity)
     const ab_times_P = BandersnatchCurve.scalarMultiply(P, a * b)
     const a_times_bP = BandersnatchCurve.scalarMultiply(bP, a)
 
@@ -248,16 +232,13 @@ describe('BandersnatchCurve Operations', () => {
   })
 
   test('Comparison with BandersnatchCurve implementation', () => {
-    // Test that both implementations produce the same results
     const P = BandersnatchCurve.GENERATOR
     const scalar = 12345n
     
     const nobleResult = BandersnatchCurve.scalarMultiply(P, scalar)
     
-    // Test that the result is on the curve
     expect(BandersnatchCurve.isOnCurve(nobleResult)).toBe(true)
     
-    // Test serialization round-trip
     const bytes = BandersnatchCurve.pointToBytes(nobleResult)
     const reconstructed = BandersnatchCurve.bytesToPoint(bytes)
     
@@ -268,17 +249,14 @@ describe('BandersnatchCurve Operations', () => {
   test('Edge cases with zero and one', () => {
     const P = BandersnatchCurve.GENERATOR
     
-    // Test 0 * P = O
     const zeroP = BandersnatchCurve.scalarMultiply(P, 0n)
     expect(zeroP.x).toBe(BandersnatchCurve.INFINITY.x)
     expect(zeroP.y).toBe(BandersnatchCurve.INFINITY.y)
     
-    // Test 1 * P = P
     const oneP = BandersnatchCurve.scalarMultiply(P, 1n)
     expect(oneP.x).toBe(P.x)
     expect(oneP.y).toBe(P.y)
     
-    // Test P + O = P
     const P_plus_O = BandersnatchCurve.add(P, BandersnatchCurve.INFINITY)
     expect(P_plus_O.x).toBe(P.x)
     expect(P_plus_O.y).toBe(P.y)
@@ -288,10 +266,8 @@ describe('BandersnatchCurve Operations', () => {
     const P = BandersnatchCurve.GENERATOR
     const scalar = 5n
     
-    // Test positive scalar
     const positiveP = BandersnatchCurve.scalarMultiply(P, scalar)
     
-    // Test negative scalar (should be equivalent to negating the point)
     const negativeP = BandersnatchCurve.scalarMultiply(P, -scalar)
     const negatedP = BandersnatchCurve.negate(positiveP)
     
@@ -299,10 +275,6 @@ describe('BandersnatchCurve Operations', () => {
     expect(negativeP.y).toBe(negatedP.y)
   })
 })
-
-// --- GLV Endomorphism Tests ---
-// Test vectors from PyBandersnatch sage scripts:
-// https://github.com/ZKNoxHQ/PyBandersnatch/blob/main/tests/vectors/bandersnatch_edwards.py
 
 const R = BANDERSNATCH_PARAMS.CURVE_ORDER
 
@@ -369,12 +341,10 @@ describe('GLV Endomorphism', () => {
   test('scalar decomposition is stable and self-consistent', () => {
     const [sign1, absK1, sign2, absK2] = scalarDecomposition(TEST_K)
 
-    // Verify the decomposition satisfies k = k1 + lambda*k2 (mod r)
     const k1InField = sign1 ? absK1 : R - absK1
     const k2InField = sign2 ? absK2 : R - absK2
     expect(mod(k1InField + LAMBDA * k2InField, R)).toBe(TEST_K)
 
-    // Verify running a second time yields identical results
     const [s1b, a1b, s2b, a2b] = scalarDecomposition(TEST_K)
     expect(s1b).toBe(sign1)
     expect(a1b).toBe(absK1)
@@ -549,7 +519,6 @@ describe('GLV Endomorphism', () => {
       0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdefn % R,
     ]
 
-    // Non-generator points (noble may have precomputed tables for BASE)
     const points = scalars.map((k) =>
       G.multiply(k === 0n ? 1n : k),
     )
@@ -557,13 +526,11 @@ describe('GLV Endomorphism', () => {
     const rounds = 5
     const iterations = scalars.length
 
-    // Warmup
     for (let i = 0; i < iterations; i++) {
       BandersnatchCurve.scalarMultiply(points[i], scalars[(i + 1) % iterations], true)
       BandersnatchCurve.scalarMultiply(points[i], scalars[(i + 1) % iterations], false)
     }
 
-    // --- Generator point benchmark ---
     let glvGenTotal = 0
     let naiveGenTotal = 0
     for (let r = 0; r < rounds; r++) {
@@ -578,7 +545,6 @@ describe('GLV Endomorphism', () => {
     const glvGenMs = glvGenTotal / rounds
     const naiveGenMs = naiveGenTotal / rounds
 
-    // --- Arbitrary point benchmark ---
     let glvArbTotal = 0
     let naiveArbTotal = 0
     for (let r = 0; r < rounds; r++) {
